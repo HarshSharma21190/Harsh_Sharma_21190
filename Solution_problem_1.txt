@@ -1,0 +1,95 @@
+20/03/15 16:50:21 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+Spark context Web UI available at http://Harsh-Komal:4040
+Spark context available as 'sc' (master = local[*], app id = local-1584271228883).
+Spark session available as 'spark'.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /___/ .__/\_,_/_/ /_/\_\   version 2.4.3
+      /_/
+
+Using Scala version 2.11.12 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_201)
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala> val state= spark.read .format("csv") .option("header", "true").load("E:/soc_gen/test/problem1/StatesName.csv")
+state: org.apache.spark.sql.DataFrame = [Capital_Name: string, Postal_Abbreviation: string]
+
+scala>
+
+scala> val estPoverty= spark.read .format("csv") .option("header", "true").load("E:/soc_gen/test/problem1/PovertyEstimates.csv")
+estPoverty: org.apache.spark.sql.DataFrame = [FIPStxt: string, State: string ... 32 more fields]
+
+scala> state.registerTempTable("State")
+warning: there was one deprecation warning; re-run with -deprecation for details
+
+scala> estPoverty.registerTempTable("EST_POVERTY")
+warning: there was one deprecation warning; re-run with -deprecation for details
+20/03/15 16:50:36 WARN Utils: Truncated the string representation of a plan since it was too large. This behavior can be adjusted by setting 'spark.debug.maxToStringFields' in SparkEnv.conf.
+
+scala> val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+warning: there was one deprecation warning; re-run with -deprecation for details
+sqlContext: org.apache.spark.sql.SQLContext = org.apache.spark.sql.SQLContext@2438cc7e
+
+scala> import sqlContext.implicits._
+import sqlContext.implicits._
+
+scala>
+
+scala> val povPercent17: (Int, Double, Int, Double) => Double = (POVALL_2018, PCTPOVALL_2018, POV017_2018, PCTPOV017_2018) => {
+     |     val totalpop = (POVALL_2018) * 100.0
+     |     val totalpop1ation = totalpop / PCTPOVALL_2018
+     |      val poorPPlabv17 = POVALL_2018 - POV017_2018
+     |
+     |     val totbelow17 = (POV017_2018) * 100.0
+     |     val toatlpplbelow17 = totbelow17 / PCTPOV017_2018;
+     |
+     |     val pplabove17 =totalpop1ation -toatlpplbelow17
+     |
+     |     val percentppl =poorPPlabv17/pplabove17
+     |
+     |     val afterpercent =percentppl*100
+     |
+     |     afterpercent
+     |   }
+povPercent17: (Int, Double, Int, Double) => Double = <function4>
+
+scala>
+     | spark.udf.register("PercentPOV17", povPercent17)
+res3: org.apache.spark.sql.expressions.UserDefinedFunction = UserDefinedFunction(<function4>,DoubleType,Some(List(IntegerType, DoubleType, IntegerType, DoubleType)))
+
+scala>
+
+scala> val joinDF = sqlContext.sql("select a.State , CONCAT(a.area_name, ' ' ,a.state) as Area_name,Urban_Influence_Code_2003,Rural_urban_Continuum_Code_2013, PercentPOV17 (POVALL_2018,PCTPOVALL_2018,POV017_2018,PCTPOV017_2018) as PovPercentAbv17 from state b ,est_poverty a where a.state=b.Postal_Abbreviation and Urban_Influence_Code_2003%2 <>0 and Rural_urban_Continuum_Code_2013%2=0 ")
+joinDF: org.apache.spark.sql.DataFrame = [State: string, Area_name: string ... 3 more fields]
+
+scala>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
