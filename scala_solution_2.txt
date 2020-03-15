@@ -1,0 +1,26 @@
+
+object ScalaPrac extends App {
+
+  val bufferedSource = io.Source.fromFile("E:/soc_gen/problem2/auth.csv")
+  for (line <- bufferedSource.getLines) {
+    val cols = line.split(",").map(_.trim)
+    if (!cols(128).contains("Delhi")) {
+      if (cols(2).>("650000"))
+        if (checkInt(cols(3)).isValidInt)
+
+          println(s"${cols(2).toString()}|${cols(3).toString()}|${cols(128).toString()}}")
+    }
+  }
+  def checkInt(sa: String) = {
+    try {
+
+      (sa.toInt)
+
+    } catch {
+      case e: NumberFormatException => -1
+    }
+  }
+
+  bufferedSource.close
+
+}
